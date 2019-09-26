@@ -1,0 +1,103 @@
+% envir.tex
+% part of the VertEgg documentation
+%
+\chapter{Working in the MATLAB/Octave Environment}
+
+MATLAB\index{MATLAB} and Octave\index{Octave} offer command-line
+oriented interactive environments for numerical computations, data
+analysis and visualisation. They also provide high level programming
+languages. These programmes, called \emph{M-files}\index{M-files}, come
+in two flavours, \emph{scripts} which are sequences of commands
+executed in batch, and \emph{functions} which can take and return
+arguments. Functions can also have local variables.  M-files may be
+viewed as extensions of the basic system.  A collection of M-files for
+a specific area is called a \emph{toolbox}\index{toolbox}.  For marine
+research for example, there exists a free toolbox for analysis of
+physical oceanographic data, named SEAWATER\index{SEAWATER}
+\citep{morg94}.
+
+
+The basic environments and the programming languages are quite
+compatible. They provide the same basic data structure, arrays of
+dimension up to two (scalars, vectors, matrices).  This makes it
+possible to write M-files that work equally well for both systems. The
+systems have simple but powerful systems for online help. 
+The main difference between the systems is the much stronger graphic
+capabilities of MATLAB.
+
+
+
+Octave is documented in \citep{eato95}.  MATLAB is documented in user
+and reference manuals, there is also a nice little primer \citep{sigm94}.
+
+\section{Implementation of the VertEgg Toolbox}
+
+The geometric setup of the problem is basic for all other
+work. This setup is therefore given by a set of global variables
+which can be accessed in the work space and by all functions in the toolbox.
+
+They are declared by the script \edbi{ve\_init} which
+contain the following statements.
+\begin{verbatim}
+  global Ncell   % Number of grid cells 
+  global dz      % Vertical step size  [m] 
+  global Hcol    % Depth of water column [m]
+  global ZE      % Ncell-vector of egg-point depths [m]
+  global ZF      % Ncell+1-vector of flux-point depths [m] 
+\end{verbatim}
+\index{Ncell@\texttt{Ncell}}\index{dz@\texttt{dz}}
+\index{Hcol@\texttt{Hcol}}\index{ZE@\texttt{ZE}}
+\index{ZF@\texttt{ZF}}
+
+
+
+Given the depth $\edb{Hcol} = H$ and the grid height $\edb{dz} =
+\Delta z$, the rest of the values can be calculated.
+This is done by the function \edb{ve\_grid(Hcol,dz)}.
+The vector $\mbox{\edb{ZE(i)}} = \bar z_i$ and 
+$\mbox{\edb{ZF(i)}} = z_i$ as defined
+in chapter ....
+
+The commands \edb{ve\_init} and \edbi{ve\_grid} can be reissued at any
+time. The only limitation is that \edb{ve\_init} must be called once before
+\edb{ve\_grid} and nearly all other VertEgg statements.
+
+Many (but not all) of the commands have names starting with \edb{ve\_},
+to not be mixed up with commands in the basic systems or other
+toolboxes. This may be done more consequently in future versions.
+
+A discretized egg distribution is represented by a column vector
+of length \edb{Ncell}. The elements are cell averages.
+A matrix of size $\edb{Ncell} \times \edb{n}$
+can be viewed as a collection of \edb{n} distributions. The commands
+in VertEgg and most general MATLAB/Octave commands work on
+distributions as a whole. For example, plotting the vertical profile
+is done by the command \edb{plot(A,ZE)}.
+
+The vector languages give a nice environment for working on 1D
+problems such as vertical distributions. For larger problems in 2D or
+3D the limitation to 2D array\footnote{The restriction to 2D arrays is
+removed in MATLAB version 5} and the performance penalty of an
+interpreted language make MATLAB/Octave less interesting.
+Even for 1D problems there are certain tricks that must be used to
+gain acceptable performance. The most important is to use vector
+constructs instead of loops. For instance, to compute the central
+diffusive flux approximation (\ref{eq:centdifflux}) in Fortran 77
+requires the loop.
+\begin{verbatim}
+      DO 11 I = 2, NCELL
+        FDIFF(I) = - K(I) * (A(I-1) - A(I))
+   11 CONTINUE
+\end{verbatim}
+A similar loop is also possible in MATLAB/Octave,
+ but much better performance is achieved by the vector subscript
+\begin{verbatim}
+  Fdiff(2:Ncell) = - K(2:Ncell) * (A(1:Ncell-1) - A(2:Ncell)).
+\end{verbatim}
+Under Octave, the variable \edb{do\_fortran\_indexing} should be true.
+This gives better compatibility with MATLAB for vector subscripts.
+
+
+
+
+

@@ -1,0 +1,342 @@
+
+\chapter{Installation}
+
+\section{Availability of the software}
+
+In the spirit of free exchange of scientific ideas, the VertEgg toolbox
+is free software. The software is available by anonymous ftp from
+the cite \edb{ftp.imr.no} in the directory \edb{/pub/software/VertEgg}.
+
+The software  can be freely redistributed and modified, the only
+restriction is that it can not be included in commercial or 
+shareware software. The author and the Institute of Marine Research
+can of course not give any guarantie that VertEgg behaves as it should.
+
+If you download and in particular if you use VertEgg the author would
+like to be informed. Use \edb{e-mail:bjorn@imr.no}. The VertEgg
+software and/or this report should be refered to when publishing results
+obtained by the use of VertEgg.
+
+\section{Matlab under Microsoft Windows}
+
+Matlab\index{Matlab} is a commercial product of The MathWorks, Inc., The
+official web-page is \verb+http://+ \verb+www.mathworks.com/+. Matlab is
+available for PC, Macintosh and UNIX workstations.  Vertegg has been
+developed and tested on version 4.2c.1 on PCs running Windows 3.11 and
+Windows 95. 
+
+The VertEgg toolbox consist of two directories, the toolbox and the
+example directory. The toolbox directory can be placed anywhere, but a
+natural place is \verb+C:\MATLAB\+ \verb+TOOLBOX\LOCAL\VERTEGG+.
+Matlab must be told about the location of the toolbox. This is best
+done by adding the the directory to the \edb{matlabpath} in the master
+startup file \verb+C:\MATLAB\MATLABRC.M+ or your own startup file.
+Alternatively, the directory can be added by the \edb{path} command in
+an interactive session.  The examples directory is not required, and
+can be placed anywhere.
+
+
+\section{Octave under UNIX}
+
+A short description of Octave\index{Octave} is taken from the README-file,
+\begin{quotation}
+   Octave is a high-level language, primarily intended for
+   numerical computations. It provides a convenient command line
+   interface for solving linear and nonlinear problems
+   numerically. 
+
+   Octave is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public Licence as
+   published by the Free Software Foundation.
+\end{quotation}
+
+Octave is developed by J.W.~Eaton from the University of Wisconsin.
+The official web-page is \edb{http://bevo.che.wisc.edu/octave.html}.
+The program is available by anonymous \edb{ftp} from the official
+site, \edb{bevo.che.wisc.edu} in the directory \edb{/pub/octave}.
+Source code and binaries for many UNIX workstations are available. The
+current version (August 1995) is 1.1.1.
+
+
+Octave uses gnuplot\index{gnuplot} as its graphic library. The VertEgg toolbox
+will work without the graphics, but most of the examples will not.
+To do any serious work with Octave, gnuplot must be installed before
+Octave. Gnuplot is also a useful program by itself.
+
+From the frequently asked questions (FAQ) about gnuplot,
+\begin{quotation}
+   Gnuplot is a command-driven interactive function plotting
+   program. It can be used to plot functions and data points in
+   both two- and three- dimensional plots in many different
+   formats, and will accommodate many of the needs of today's
+   scientists for graphic data representation. Gnuplot is
+   copyrighted, but freely distributable; you don't have to pay
+   for it.
+\end{quotation}
+
+Gnuplot has many authors and is available on all platforms.
+The official www homepage for gnuplot is 
+\verb+http:+\verb+//www.cs.+\verb+dartmouth.edu+\verb+/gnuplot_info.html+, the
+program is available by anonymous \edb{ftp} from
+\edb{ftp.dartmouth.edu} in the directory \edb{/pub/gnuplot} and many
+other cites. The current version (August 1995) is 3.5 but
+beta-releases of version 3.6 are updated frequently.
+
+The natural place for the VertEgg toolbox directory is
+\verb+/usr/local/lib/octave/site/+ \verb+m/vertegg+ where it
+automatically will be found by Octave. The examples directory can be
+placed anywhere.
+
+
+\chapter{Mathematical digressions}
+
+\section{Exact solution of transient problem with constant
+  coefficients}
+
+
+
+If the eddy diffusivity $K$ and the egg velocity $w$ are constant and
+the source term $Q$ is zero, the convection-diffusion equation
+(\ref{eq:difflaw}) can be solved analytically.
+
+The problem is,
+\begin{equation}\label{eq:constpde}
+  \phi_t + w \phi_z - K \phi_{zz} = 0
+\end{equation}
+with boundary conditions
+\begin{equation}
+  w \phi - K \phi_z = 0, \quad z = -H, z = 0 .
+\end{equation}
+
+Using a standard technique, separation of variables, let
+$ \phi(z,t) = A(t) B(z) $. 
+With $m = w/K$, this gives the following ordinary differential 
+equation for $B$,
+\begin{equation}\label{eq:B(z)}
+  B'' - m B' + \lambda B = 0 ,
+\end{equation}
+or in Sturm-Liouville form, 
+\begin{equation}
+  (\e^{-mz} B')' + \lambda \e^{-mz} B = 0 .
+\end{equation}
+The boundary conditions are separated,
+\begin{equation}
+ B' = m B, \quad z = -H, z = 0.
+\end{equation}
+In this form we have a self-adjoint, regular Sturm-Liouville system.
+
+To such a system, there is an increasing sequence of real eigenvalues,
+$\lambda_0 < \lambda_1 < \dots$ with associated eigenfunctions
+$B_n(z)$. These functions forms an orthogonal system with respect
+to the inner-product 
+\begin{equation}
+  \langle f,g \rangle = \int_{-H}^0 f(z) g(z) \e^{-mz} dz .
+\end{equation}
+
+
+
+In our case the only eigenvalue $\lambda \le m^2/4$ is
+$\lambda_0 = 0$ corresponding to the stationary
+solution $\phi(z,t) = \e^{mz}$. For $\lambda > m^2/4$ 
+let $\alpha^2 = \lambda - m^2/4$. 
+The general solution to equation~(\ref{eq:B(z)}) is then
+\begin{equation}
+  B(z) = \e^{\half m z} (b_1 \cos(\alpha z) + b_2 \sin(\alpha z)),
+\end{equation}
+Imposing the boundary conditions gives
+\begin{equation}
+  2 \alpha b_2 = m b_1, \quad \mbox{and} \quad
+   \alpha_n = \frac{n \pi}{H}, \quad n = 1, 2, \dots .
+\end{equation}
+
+The normalised eigenfunctions with respect to the inner product are
+\begin{equation}
+   \lambda_0 = 0, \quad B_0 = \sqrt{\frac{m}{1-\e^{-mH}}} \e^{mz}
+\end{equation}
+and for $n \ge 1$
+\begin{equation}
+   \lambda_n = \frac{m^2}{4} + \left(\frac{n \pi}{H}\right)^2, \quad
+      B_n = (2 H \lambda_n)^{-\half} \e^{\half m z} 
+            (2 \alpha_n \cos(\alpha_n z) + m \sin(\alpha_n z))
+\end{equation}
+
+For $\lambda_0 = 0$ the time dependent part $A_0$ is constant.
+The time dependent part corresponding to $\lambda = \lambda_n$ with $n \ge
+1$ is
+\begin{equation}
+   A_n(t) = \e^{-\lambda_n K t}
+\end{equation}
+
+This gives the general format for the solution of
+equation~(\ref{eq:constpde}),
+\begin{equation}
+  \phi(z,t) = \sum_{n=0}^\infty a_n \e^{-\lambda_n K t} B_n(z)
+\end{equation}
+The coefficients $a_n$ are determined from the initial values
+$\phi(z,0) = f(z)$ by
+\begin{equation}
+   a_n = \langle f, B_n \rangle = \int_{-H}^0 f(z) B_n(z) \e^{-mz} dz .
+\end{equation}
+
+
+\section{Linear conservative schemes}\label{app:lincons}
+
+The linear finite difference schemes considered in
+section~\ref{seq:linsch} are all in conservation form (\ref{eq:numlaw})
+\begin{equation}\label{eq:appflux}
+    (\phi_i^{n+1} - \phi_i^n) \Dz = (F_{i+1}^n - F_i^n) \Dt 
+\end{equation}
+where the flux function have the forms (\ref{eq:alphabeta})--(\ref{eq:ab})
+\begin{equation}\label{eq:applin}
+   F_i = \alpha_i \phi_i + b_i \phi_{i-1}
+       = \frac{\Dz}{\Dt} ( a_i \phi_i + b_i \phi_{i-1} )
+\end{equation}
+where the coefficients are independent of the $\phi_i$-s.
+
+\subsection{Conditions for consistence}\index{concistence}
+
+A numerical scheme for a partial differential equation must be 
+\emph{consistent}, this means that the scheme converges to the equation
+as the time and space steps approach zero.
+
+Here the first expression $F_i = \alpha_i \phi_i + \beta_i \phi_{i-1}$
+is used. The $\phi_i$-s are defined as cell averages in 
+equation \ref{eq:cellav}
+For continuous functions  $\alpha(z)$, $\beta(z)$ and
+$\phi(z)$, $F_i = \tilde{F}(z_i)$ where
+\begin{equation}
+  \tilde{F}(z) = \frac{1}{\Dz}
+      \left( \alpha(z) \int_{z-\Dz}^z\!\phi(\zeta)\,d\zeta 
+        +    \beta(z)  \int_z^{z+\Dz}\!\phi(\zeta)\,d\zeta \right) .
+\end{equation}
+The Taylor expansion of $\phi$ around z is
+\begin{equation}
+   \phi(\zeta) = \phi(z) + \phi_z(z)(\zeta-z) 
+        + \frac{1}{2}\phi_{zz}(z)(\zeta-z)^2 + \cdots .
+\end{equation}
+Using this $\tilde{F}$ can be expanded as the series
+\begin{equation}
+  \tilde{F} = (\alpha + \beta) \phi 
+       - \frac{1}{2} (\alpha - \beta) \phi_z \Dz
+       + \frac{1}{6} (\alpha + \beta) \phi_{zz} \Dz^2 - +  \cdots .
+\end{equation}
+For consistence, $\tilde{F}$ must converge
+to the flux function $F$,
+\begin{equation} 
+  \tilde{F} \rightarrow 
+  F = w \phi - K \phi_z \quad \text{as $\Dz, \Dt \rightarrow 0$}.
+\end{equation}
+This gives the following consistence criterion 
+\begin{alignat}{2}
+     \alpha + \beta &\rightarrow w \quad 
+                &\text{as $\Dt, \Dz \rightarrow 0$} \\
+     (\alpha - \beta) \Dz &\rightarrow 2 K \quad 
+                &\text{as $\Dt, \Dz \rightarrow  0$} 
+\end{alignat}
+
+The schemes considered in section~\ref{seq:linsch} should be consistent
+by construction.  This is easily verified as $w = \alpha + \beta$ in all
+three cases and \begin{equation} (\alpha - \beta)\Dz =
+  \begin{cases}
+    2 K  &  \text{FTCS}, \\
+    2 K + w^2 \Dt & \text{Lax-Wendroff},  \\
+    2 K + \abs{w} \Dz & \text{Upstream}.
+  \end{cases}
+\end{equation}
+
+
+
+\subsection{Conditions for positivity and stability}\label{app:pos}
+\index{positivity}\index{stability}
+
+For this analysis the nondimensional form
+\begin{equation}\label{eq:nondimflux}
+   F_i = \frac{\Dz}{\Dt} ( a_i \phi_i + b_i \phi_{i-1} )
+\end{equation}
+of the numeric flux function is used.
+
+Substituting equation \eqref{eq:nondimflux} and the boundary conditions
+$F_i = F_{N+1} = 0$ in \eqref{eq:appflux} gives the following expession
+for the solution $\phi^+$ at the next time step 
+\begin{align}
+  \phi_1^+ & = (1 + b_2) \phi_1 + a_2 \phi_2, \\
+  \phi_i^+ & = - b_i \phi_{i-1} + (1 - a_i + b_{i+1}) \phi_i 
+             + a_{i+1} \phi_{i+1} , \quad i = 2, \dots, N-1, 
+              \label{eq:aftersubst2} \\
+  \phi_N^+ & = -b_N \phi_{N-1} + (1 - a_N) \phi_N .             
+\end{align}
+
+
+For the scheme to be positive we must have $\phi_i^+ \ge 0$ for all
+nonnegative values of $\phi_{i-1}, \phi_i, \phi_{i+1}$.
+In other words, the coefficients above must all be nonnegative
+\begin{align}
+   a_{i} & \ge 0, \quad i = 2, \dots, N, \label{eq:poscond1}\\
+   b_i   & \le 0, \quad i = 2, \dots, N, \\
+   - b_2 & \le 1, \label{eq:poscond3} ,\\ 
+   a_i - b_{i+1} & \le 1, \quad i = 2, \dots, N-1, \\
+   a_N           & \le 1 . \label{eq:poscond5} 
+\end{align}
+
+If the coefficients $a$ and $b$ are constant, a traditional Von Neumann
+stability analysis can be carried out. The amplification factor is
+\begin{equation}
+  \lambda = 1-(a-b)\cos^2\Theta  + \i (a+b)\sin \Theta
+\end{equation}
+for $\Theta = m \pi \Dz$. The stability condition $\abs{\lambda} \le 1$
+for all values of $\Theta$ then becomes
+\begin{equation}
+  (a+b)^2 \le (a-b) \le 1 .
+\end{equation}
+In this case, the positivity conditions,
+eqs.~(\ref{eq:poscond1}--\ref{eq:poscond5}) are reduced to
+\begin{equation}
+  a \ge 0, \quad b \le 0, \quad a - b \le 1 ,
+\end{equation}
+which is is stronger than the stability condition.
+
+\subsection{Positivity with loss term}\label{app:posloss}
+
+Egg production works to enhance the positivity of the solution
+while loss of eggs may ruin an otherwise positive solution.
+For the analysis of this situation we use equation~(\ref{eq:numlaw})
+with $F_i$ given by the nondimensional form (\ref{eq:ab}) and the
+source term $Q_i$ given by eq.~(\ref{eq:kildediskret}).
+Substitutitint the $F$ and $Q$ terms in (\ref{eq:numlaw}) gives the
+following genrealisation of eq.~(\ref{eq:aftersubst2})
+\begin{equation}
+  \phi_i^+  = P_i \frac{1-\e^{-\alpha_i \Dt}}{\alpha_i}
+          - b_i \phi_{i-1} + (\e^{-\alpha_i \Dt} - a_i + b_{i+1}) \phi_i 
+             + a_{i+1} \phi_{i+1} , \quad i = 2, \dots, N-1 .
+\end{equation}
+If this should be positive, regardless of $P_i$ the  conditions
+(\ref{eq:poscond3}--\ref{eq:poscond5}) must be strengthened
+\begin{align}
+   - b_2 & \le \e^{-\alpha_i \Dt}, \\ 
+   a_i - b_{i+1} & \le \e^{-\alpha_i \Dt}, \quad i = 2, \dots, N-1, \\
+   a_N           & \le \e^{-\alpha_i \Dt} . 
+\end{align}
+
+
+
+
+
+
+\chapter{Future work}
+
+Hopefully, as the toolbox is put to use, it will develop to better
+suit the need of scientists in the field. Below is an unsorted list
+of things that may be included.
+
+\begin{itemize}
+  \item Better numerical schemes for the convection-diffusion equation.
+  \item Implementation of Lagrangian (particle tracking) approach.
+  \item Implement analytical transient solution of
+        convection-diffusion equation with constant coefficients.
+  \item More functions for analysis of observed egg distributions.
+  \item Non-uniform vertical grid.
+  \item Ekman solver.
+  \item Turbulence model(s).
+  \item Homepage for VertEgg on World Wide Web.
+\end{itemize}
+

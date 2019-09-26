@@ -1,0 +1,485 @@
+% numerikk.tex
+% Part of VertEgg documentation
+%
+
+
+\chapter{Numerical Methods}
+
+
+
+The numerical solutions are computed on a fixed equidistant grid.  The
+number of grid cells is denoted $N$ and the cell height is $\Delta
+z$. The grid is staggered as shown in fig.~\ref{fig:grid}.  The
+$z$-axis points upwards.
+ 
+The cell interfaces, the \emph{flux points}\index{flux points}, are 
+\begin{equation}\label{eq:flushpt}
+  z_i = (1-i) \Dz \quad \text{for} \quad i = 1, \dots, N+1 .
+\end{equation}
+The cell centers, the \emph{concentration points}\index{concentration
+points} or the \emphi{egg points}, are
+\begin{equation}\label{eq:eggpt}
+  \bar{z}_i = \frac{z_i + z_{i+1}}{2} = (\half-i) \Dz
+            \quad \text{for} \quad i = 1, \dots, N .
+\end{equation}
+
+\begin{figure}[h]
+\begin{center}
+\setlength{\unitlength}{1mm}
+\begin{picture}(65,20)
+  \multiput(10.0, 8.5)(20,0){3}{\line(0, 1){3}}
+  \put(20.0,10.0){\makebox(0,0){$\times$}}
+  \put(40.0,10.0){\makebox(0,0){$\times$}}
+  \put(10.0, 6.0){\makebox(0,0){$z_{i+1}$}}
+  \put(30.0, 6.0){\makebox(0,0){$z_{i}$}}
+  \put(50.0, 6.0){\makebox(0,0){$z_{i-1}$}}
+  \put(20.0, 6.0){\makebox(0,0){$\bar{z}_{i}$}}
+  \put(40.0, 6.0){\makebox(0,0){$\bar{z}_{i-1}$}}
+  \put(10.0,14.0){\makebox(0,0){$F_{i+1}$}}
+  \put(30.0,14.0){\makebox(0,0){$F_{i}$}}
+  \put(50.0,14.0){\makebox(0,0){$F_{i-1}$}}
+  \put(20.0,14.0){\makebox(0,0){$\phi_{i}$}}
+  \put(40.0,14.0){\makebox(0,0){$\phi_{i-1}$}}
+  \put(0,10){\vector(1,0){60}}
+\end{picture}
+\end{center}
+\caption{Horizontal view of the vertical grid}\label{fig:grid}
+\end{figure}
+
+The variables are discretized in the following ways. The egg
+concentration $\phi_i$ represents the mean concentration in
+cell $i$, that is
+\begin{equation}\label{eq:cellav}
+  \phi_i \Dz = \int_{z_{i+1}}^{z_i} \!\phi(z)\,dz, 
+                 \quad i = 1, \dots ,N .
+\end{equation}
+The $\phi_i$ values may be considered living on the egg points
+$\bar{z}_i$ as in fig.~\ref{fig:grid}. As the flux values are computed
+from the vertical velocity and the eddy diffusivity,
+$F_i$, $w_i$ and $K_i$ are taken as point values on the flux points
+$z_i$ for $i = 1, \dots, N+1$. The source terms $P_i$ and $\alpha_i$
+are cell averages and live on the egg points.
+
+
+\section{The Transient Problem}\label{sec:numtrans}
+
+The numerical solution of the convection-diffusion
+equation~(\ref{eq:difflaw}) are covered by several authors.  A classic
+source is Roache \shortcite{roac72}. A newer source is chapter 9 in
+the book by Fletcher \shortcite{flet91}. Recently a whole book, edited
+by Vreugdenhil and Koren \shortcite{vreu93}, has been devoted to this
+equation.  For conservative methods, as will be used here, the book by
+LeVeque \shortcite{leve92} is also recommended.
+
+For our problem, convection and diffusion of concentration of fish
+eggs, some properties of the numerical method is important.  Fish eggs
+are usually found in a subrange of the water column with values close
+to zero outside this range. And of course a real concentration do not
+have negative values.  The method must therefore be
+\emph{positive}, that is it must not create
+any negative values.
+
+In the absence of source and sink terms, eggs are not created or
+destroyed. The vertical integrated concentration is therefore constant
+in time as shown in section~\ref{sec:vertint}.  The numerical method
+should have the same property, it should be \emph{mass
+conserving}\index{mass conserving method}. 
+
+Of course the numerical solution should be as close as possible to the
+real solution. That is the \emph{accuracy} of the method should be
+good. This concept includes low artificial diffusion and no or very
+limited wiggles development.
+
+A convection -- diffusion problem is characterised by the following
+non-dimensional numbers, all defined at the interior flux points,
+$z_i$ for $i = 2, \dots, N$.
+\begin{align}
+  & \text{Courant number}         & c_i & = w_i\frac{\Dt}{\Dz} \\
+  & \text{Diffusive parameter}    & s_i & = K_i \frac{\Dt}{\Dz^2} \\
+  & \text{Cell Peclet number}     & \Pcell_i & = 
+       \frac{\abs{w_i} \Dz}{K} = \frac{\abs{c_i}}{s_i}
+\end{align}
+\index{Courant number}\index{diffusive parameter}\index{cell Peclet number}
+If the coefficients $w$ and $K$
+are constant, the subscripts are simply dropped.
+
+For fish eggs, the terminal velocity is in the order of a couple of
+millimetres per second. The velocity can be positive (\emph{pelagic}
+eggs)\index{pelagic eggs}, negative (\emph{benthic})\index{benthic
+eggs} or change sign some place in the water column
+(\emph{mesopelagic})\index{mesopelagic eggs}. The vertical eddy
+diffusion show a very large range of variation, from more than
+$10^{-2}$ \sqmps\ in the upper mixing layer to $10^{-5} \sqmps$
+in the pycnocline layer.  With a grid size of the
+order of one meter, the Cell Peclet number $\Pcell$ take values from
+$10^{-1}$ to $10^2$. This means that the process may be dominated by
+diffusion in the upper layer and convection below.
+
+The numerical methods considered here are \emph{finite difference} or
+really \emph{finite volume} schemes given in \emph{conservation
+form}\index{conservation form} (or \emph{flux
+formulation}\index{flux formulation}).  These methods are
+conceptually natural, working directly with the integral form of the
+conservation law~(\ref{eq:intlaw}).  More precisely, the
+equation~(\ref{eq:intlaw}) is approximated by
+\begin{equation}\label{eq:numlaw}
+  (\phi_i^{n+1} - \phi_i^n) \Dz = 
+           (F_{i+1}^n - F_i^n) \Dt + Q_i^n \Dz \Dt ,
+           \quad i = 2, \dots, N
+\end{equation}
+where the superscripts indicate the time step. 
+The boundary conditions (\ref{eq:boundcond}) simply become
+$F_1 = F_{N+1} = 0$. The various methods
+differ in their estimation of the total flux function $F_i = \Fconv_i
++ \Fdiff_i$ and the source term $Q_i$.  One advantage of this flux
+formulation is that mass conservation is automatically fulfilled, as
+the fluxes cancel out during vertical integration.
+
+Without source term the total concentration is conserved. Therefore
+the local concentration values can not become arbitrary large, unless
+there are negative values in some other cells. In other words,
+positivity is a sufficient (but not necessary) condition for stability
+of such schemes.
+
+In the following several methods are described.  They are implemented in
+the toolbox as \edbi{ftcs}, \edbi{lwendrof}, \edbi{upstream},
+\edbi{posmet}, and \edbi{minlim} respectively. Their performance
+will be studied in the example section~\ref{sec:sens}. Several methods
+for the same problem causes a new problem, which method to choose. This
+depends on the range of $\Pcell$ values in the problem. A general
+advice is to try Lax-Wendroff first. This is an accurate and fast method
+when applicable. If oscillations occur, go for the flux-limited
+methods or use higher spatial resolution.  In both cases more computing
+time is required. 
+
+
+
+\subsection{Linear conservative schemes}\label{seq:linsch}
+
+The linear conservative schemes considered here estimates the total 
+flux function in the form 
+\begin{equation}\label{eq:alphabeta}
+  F_i = \alpha_i \phi_i + \beta_i \phi_{i-1} ,
+\end{equation}
+where the $\alpha_i$-s and $\beta_i$-s are independent of 
+the $\phi_i$-s. Sometimes this will be used in non-dimensional form
+\begin{equation}\label{eq:ab}
+  F_i = \frac{\Dz}{\Dt} (a_i \phi_i + b_i \phi_{i-1}) .
+\end{equation}
+Some general theory for this kind of numerical schemes is presented
+in Appendix~\ref{app:lincons}
+
+
+\subsubsection{The FTCS scheme}\index{FTCS scheme}
+
+The simplest scheme is often called FTCS (forward time central space)
+after the differencing. This scheme is described for instance in
+chapter 9.4 in \cite{flet91}. Here both flux
+components are centred around $z = z_i$,
+\begin{equation}
+  \Fconv_i = w_i \frac{\phi_{i-1} + \phi_i}{2}
+\end{equation}
+\begin{equation}\label{eq:centdifflux}
+  \Fdiff_i = - K_i \frac{\phi_{i-1} - \phi_i}{\Dz} .
+\end{equation}
+In the notation of equation (\ref{eq:alphabeta}) the method is given by
+\begin{equation}
+   \alpha_i = \frac{1}{2} w_i + \frac{K_i}{\Dz} , \quad 
+   \beta_i  = \frac{1}{2} w_i - \frac{K_i}{\Dz} ,
+\end{equation}
+and non-dimensionalised by
+\begin{equation}
+   a_i = \frac{1}{2} c_i + s_i , \quad 
+   b_i = \frac{1}{2} c_i - s_i .
+\end{equation}
+
+The following positivity condition for the FTCS scheme follows from
+the general condition in Appendix~\ref{app:pos}.
+\begin{gather}
+     \abs{c_i} \le 2 s_i,  \quad i = 2, \dots, N \\
+      s_2 \le 1 + \half c_2 \\
+  s_i + s_{i+1} \le 1 + \half (c_i - c_{i+1}), \quad i = 2, \dots, N-1 \\ 
+      s_N \le 1 - \half c_N
+\end{gather}
+The first condition can be restated as $\Pcell \le 2$.
+
+With constant coefficients, the positivity conditions reduce to
+\begin{equation}
+  \abs{c} \le 2 s \le 1,
+\end{equation}
+which is stronger than the stability condition
+\begin{equation}
+  c^2 \le 2 s \le 1 .
+\end{equation}
+
+The numerical ``diffusion'' is negative, 
+\begin{equation}
+  K_{num} = - \half w^2 \Dt
+\end{equation}
+which is negligible if $c^2 \ll 2s$.
+
+This method is implemented in the toolbox as the function \edbi{ftcs}.
+
+\subsubsection{The Lax-Wendroff Scheme}\index{Lax-Wendroff scheme}
+
+An alternative is the Lax-Wendroff scheme as analysed for instance in
+\cite{vreu93b}. The scheme compensates for the negative numerical
+``diffusion'' in FTCS.  The diffusive flux is still given by
+equation~(\ref{eq:centdifflux}) but the convective flux is modified
+\begin{equation}\label{eq:lwflux}
+  \Fconv_i = w_i \frac{\phi_{i-1} + \phi_i}{2}
+      - \half w_i^2 \frac{\Dt}{\Dz} 
+       (\phi_{i-1} -\phi_i) .
+\end{equation}
+In the notation of equation (\ref{eq:alphabeta}) the Lax-Wendroff
+method is given by
+\begin{equation}
+   \alpha_i = \frac{1}{2} w_i(1+w_i\frac{\Dt}{\Dz}) + \frac{K_i}{\Dz} , \quad 
+   \beta_i  = \frac{1}{2} w_i(1-w_i\frac{\Dt}{\Dz}) - \frac{K_i}{\Dz} ,
+\end{equation}
+and non-dimensionalised by
+\begin{equation}
+   a_i = \frac{1}{2} c_i(1+c_i) + s_i , \quad 
+   b_i = \frac{1}{2} c_i(1-c_i) - s_i .
+\end{equation}
+
+From Appendix~\ref{app:pos} the conditions for positivity are
+\begin{gather}
+     \abs{c_i} \le 2 s_i + c_i^2,  \quad i = 2, \dots, N \\
+     s_i + s_{i+1} \le 1 + \half (c_i - c_{i+1}) - \half(c_i^2 + c_{i+1}^2),
+               \quad i = 2, \dots, N-1.
+\end{gather}
+The first condition can be restated as 
+\begin{equation}\label{eq:lwpcell}
+    \Pcell \le \frac{2}{1-\abs{c_i}} .
+\end{equation}
+
+With constant coefficients, the positivity
+conditions reduce to
+\begin{equation}
+ \abs{c} \le c^2 + 2 s \le 1,
+\end{equation}
+which is stronger than the stability condition
+\begin{equation}
+  c^2 + 2 s \le 1 .
+\end{equation}
+
+There is no second order numerical diffusion in the transient
+solution.  Wiggles will not occur if the positivity
+condition~(\ref{eq:lwpcell}) is fulfilled.
+This method is implemented in the toolbox as the function \edbi{lwendrof}.
+
+\subsubsection{The Upstream Scheme}\index{upstream scheme}
+
+A non-centred alternative is the upstream method.  This is the method
+used by West\-g{\aa}rd \shortcite{west89}.  The upstream scheme is
+studied in all books on the subject.  The same diffusive flux
+(\ref{eq:centdifflux}) is used but the convective flux is estimated on
+the inflow side.
+\begin{equation}\label{eq:usflux}
+  \Fconv_i = w_i^+ \phi_i + w_i^- \phi_{i-1}
+\end{equation}
+where 
+\begin{equation}
+   x^+ = \half (x + |x|) = 
+       \begin{cases}
+          x& \text{if $x \ge 0$},\\
+          0& \text{if $x  < 0$}.
+       \end{cases}
+\end{equation}
+and $x^- = x - x^+$.
+In the notation of equation (\ref{eq:alphabeta}) the method is given by
+\begin{equation}
+   \alpha_i =  w_i^+ + \frac{K_i}{\Dz} , \quad 
+   \beta_i  =  w_i^- - \frac{K_i}{\Dz} ,
+\end{equation}
+and non-dimensionalised by
+\begin{equation}
+   a_i = c_i^+ + s_i , \quad 
+   b_i = c_i^- - s_i .
+\end{equation}
+
+From Appendix~\ref{app:pos} the positivity condition is simply
+\begin{equation}\label{eq:uspos}
+  c_i^+ - c_{i+1}^- + s_i + s_{i+1} \le 1 .
+\end{equation}
+With constant coefficients this reduces to
+\begin{equation}
+  \abs{c} + 2 s \le 1 .
+\end{equation}
+which is also the stability condition.
+
+The numerical diffusion in the upstream scheme may be quite large
+\begin{equation}
+  K_{num} = \half w \Dz (1-\abs{c})
+\end{equation}
+This is negligible if $K_{num} \ll K$, or equivalently
+\begin{equation}
+  \Pcell \ll \frac{2}{1 - \abs{c}} .
+\end{equation}
+
+The upstream scheme is implemented in the toolbox as the function
+\edbi{upstream}.
+
+\subsection{Nonlinear methods}\label{sec:nonlin}\index{non
+linear method}
+
+The Lax-Wendroff scheme is second order in space but may develop
+wiggles and negative concentration values. The upstream method is
+positive but may be too diffusive. These are fundamental problems with
+linear schemes.  Several nonlinear schemes has been developed to
+overcome these problems.  A general idea is to combine the
+Lax-Wendroff and upstream methods to produce positive schemes with low
+numerical diffusion. Overviews of such methods are given by LeVeque
+\shortcite{leve92} and in the collection \citep{vreu93}.
+
+Egg distribution problems are somewhat non-symmetrical. It is
+important to have high accuracy near maxima where most of the eggs are
+found. Local minima are less interesting and they occur more seldom in
+the interior of the water column. For instance, with the steady state
+solution (\ref{eq:sstatesol}) without source terms, a local minimum in
+the interior can occur only in static instable situations when the egg
+is lighter than the water above and heavier saline than the water
+below.
+
+The methods below are not total variation diminishing (TVD) as some of
+the more advanced non-linear methods.  Instead of a finely tuned
+linear combination, the schemes use simple on/off mechanisms to switch
+between the Lax-Wendroff and upstream fluxes.  On the other hand, the
+asymmetry above is exploited. The schemes have high accuracy at maxima
+because the unmodified Lax-Wendroff flux is used in this situation.
+
+
+
+\subsubsection{The positive method}\index{positive scheme}
+
+This is a simple scheme, mostly using the Lax-Wendroff
+fluxes but limiting to the upstream fluxes where Lax-Wendroff produces
+negative concentration values. The algorithm consists of three steps,
+\begin{enumerate}
+\item Compute the Lax-Wendroff fluxes including diffusivity by
+   formul{\ae} (\ref{eq:lwflux}) and (\ref{eq:centdifflux}).
+\item Apply the fluxes to compute a test distribution
+\begin{displaymath}
+  \phi_i^{test} = \phi_i - \frac{\Dt}{\Dz}(F_i - F_{i+1}) .
+\end{displaymath}
+\item Where $\phi_i^{test} < 0$, recompute $F_i$ and $F_{i-1}$ by the
+  upstream formulation (\ref{eq:usflux}) and diffusion (\ref{eq:centdifflux}).
+\end{enumerate}
+
+Positivity of the upstream scheme or Lax-Wendroff scheme implies
+positivity of the flux limited scheme. The positivity
+condition~(\ref{eq:uspos}) is therefore a sufficient (but not
+necessary) condition for positivity of the combined scheme.
+
+The scheme is implemented in the toolbox as the function \edbi{posmet}.
+
+
+
+\subsubsection{The minimum limiting method}
+\index{minimum limiting scheme}
+
+Although the method above is positive, it may create wiggles around a
+positive value.  To improve on this situation a slight variant is
+proposed.  The new criteria for switching from Lax-Wendroff to
+upstream flux is the occurrence of a local minimum.  As the first
+negative value must be a local minimum prevents the method from
+creating negative values (if the upstream scheme is stable).
+
+Steps 1 and 2 in the algorithm are identical to the positive scheme.
+The third step is modified to 
+\begin{quote}
+  3'. Where $\phi_i^{test} < \min (\phi_{i-1}^{test},\phi_{i+1}^{test})$, 
+      recompute $F_i$ and $F_{i-1}$ by the
+      upstream formulation (\ref{eq:usflux}) and diffusion 
+      (\ref{eq:centdifflux}).
+\end{quote}
+
+This scheme is implemented in the toolbox as the function \edbi{minlim}.
+
+\subsection{The Source Term}
+
+Neglecting the fluxes for the moment, the transport equation
+\pref{eq:difflawfull} reduces to an ordinary differential equation
+\begin{equation}\label{eq:noflux}
+  \Od{\phi}{t} = P - \alpha \phi .
+\end{equation}
+The numerical scheme \pref{eq:numlaw} reduces to
+\begin{equation}\label{eq:numnoflux}
+  \phi_i^{n+1} - \phi_i^n = Q_i^n \Dt .
+\end{equation}
+The exact solution of (\ref{eq:noflux}) with
+constant coefficients is
+\begin{equation}
+  \phi^{n+1} = \e^{-\alpha \Dt} \phi^n + 
+                 (1 - \e^{- \alpha \Dt}) \frac{P}{\alpha} .
+\end{equation}
+This is in the form \pref{eq:numnoflux} with
+\begin{equation}\label{eq:kildediskret}
+  Q_i = (P_i - \alpha_i \phi_i) 
+         \frac{1-\e^{- \alpha_i \Dt}}{\alpha_i \Dt} .
+\end{equation}
+This scheme will never produce negative concentration values.
+
+Combining this with the convection-diffusion solvers above is
+straightforward. The combined positivity condition becomes more
+restrictive as discussed in Appendix~\ref{app:posloss}. 
+In general the number $1$ appearing as upper limit must be replaced
+by $\exp(-\alpha \Dt)$.  For instance, with constant coefficients
+the positivity conditions for the familiar linear schemes become
+\begin{align}
+  & \text{FTCS}         & \abs{c} \le 2 s & \le \e^{-\alpha \Dt} , \\
+  & \text{Lax-Wendroff} & c^2 + 2 s       & \le \e^{-\alpha \Dt} , \\
+  & \text{Upstream}     &  \abs{c} + 2 s  & \le \e^{-\alpha \Dt} .
+\end{align}
+
+
+  
+\section{The Stationary Problem}\label{sec:statprob}
+
+In many problems only the steady state solution is needed.  Also for
+transient problems, a fast and accurate way of reaching the stationary
+solution is of interest.
+
+If the coefficients $w$ and $K$ are constant, the exact
+solution~(\ref{eq:eggsact}) can be used directly. With negative
+velocity and low diffusivity, $m = w/K \ll 0$, the formula may overflow.  This
+can be avoided by using the symmetry relation~(\ref{eq:symmetry}) for
+negative $m$.  This solution is computed by the function \edbi{eggsact}
+in the toolbox. For the discretized solution to have the correct
+vertical integral and be comparable to the numerical solutions, cell
+averages
+\begin{equation}
+  \phi_i = \frac{\Phi}{\Dz}
+           \frac{\e^{m z_i} - \e^{m z_{i+1}}}{1 - \e^{-mH}} 
+\end{equation}
+are better. This is also computed by \edbi{eggsact}.
+
+
+General $w$ and $K$ can be regarded as constant on the grid cells.
+Suppose $w$ and $K$ and their quotient $m$ live on the flux points as
+in the transient problem. Form the cell average $\bar{m}_i = (m_i +
+m_{i+1}) / 2$. The cell averaged solution becomes
+\begin{equation}
+  \bar{\phi}_i = 
+     \frac{C_i}{\Dz} 
+     \frac{\e^{\bar{m}_i z_i} - \e^{\bar{m}_i z_{i+1}}}{\bar{m}_i}
+\end{equation}
+where the $C_i$-s are computed by continuity
+\begin{equation}
+  \phi_i(z_i) = \phi_i(z_{i+1})
+\end{equation}
+and vertical integral
+\begin{equation}
+  \Dz \sum_{i = 1}^N \bar{\phi_i} = \Phi
+\end{equation}
+With low mixing and high sinking velocity the exponential terms may
+overflow. The computation of the $C_i$-terms may overflow.  The last
+problem is overcome by working with the logarithms. For the first
+problem the $C_i$-terms are renormalised by finding a suitable value for
+$C_1$. The method is implemented in the toolbox as the function
+\edbi{sstate}.
+
+
+%\section{Particle Methods}
+

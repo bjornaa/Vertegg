@@ -1,0 +1,142 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{amsmath}    % Advanced Mathematics
+\usepackage{graphicx}   % Include PostScript figures
+\usepackage{makeidx}    % Makeindex
+\usepackage{a4wide}
+\usepackage[round]{natbib}     % Bibliography
+
+
+
+\makeindex
+
+\title{VertEgg -- A toolbox for simulation of vertical distributions 
+of fish eggs \\ Version 1.0}
+
+\author{Bj{\o}rn {\AA}dlandsvik \\
+        Institute of Marine Research \\
+        P.O. Box 1870, Nordnes \\
+        N-5024 Bergen \\
+        Norway \\
+        E-mail: bjorn@imr.no}
+
+% Inkluder mattemakroer og enheter
+\input{makroer}
+
+%\includeonly{appendix}
+
+
+\pagestyle{headings}
+
+\setcounter{tocdepth}{3}
+
+
+\renewcommand{\phi}{\varphi}
+
+% Mer spesielle mattemakroer
+%\newcommand{\Fconv}{\ensuremath{F^{\mathit{conv}}}}  % Convective flux
+%\newcommand{\Fdiff}{\ensuremath{F^{\mathit{diff}}}}  % Diffusive flux
+\newcommand{\Fconv}{\ensuremath{F^{\mathrm{conv}}}}  % Convective flux
+\newcommand{\Fdiff}{\ensuremath{F^{\mathrm{diff}}}}  % Diffusive flux
+\newcommand{\Qspawn}{\ensuremath{Q^{\mathrm{spawn}}}}  %
+\newcommand{\Qloss}{\ensuremath{Q^{\mathrm{loss}}}}  % 
+\newcommand{\Pcell}{\ensuremath{P^{\mathrm{cell}}}}
+\newcommand{\e}{\ensuremath{\mathrm{e}}}
+\renewcommand{\i}{\ensuremath{\mathrm{i}}}
+
+\newcommand{\Vint}{\int_{-H}^0}        % Vertical integral
+
+% Nyttige enheter
+%\newcommand{\parm}{\text{$\mbox{particles} / \text{m}^{3}$}\ }
+
+
+% Ymse
+\newcommand{\shortcite}[1]{(\citeyear{#1})}
+%\bibpunct{(}{)}{;}{a}{,}{,}
+
+
+% Fontskifte for EDB-tekniske utrykk 
+%\newcommand{\edb}[1]{{\texttt{#1}}}
+\newcommand{\edb}[1]{{\mbox{\texttt{#1}}}}
+% EDB-teknisk + index
+\newcommand{\edbi}[1]{{\mbox{\texttt{#1}}}\index{#1@\texttt{#1}}}
+\newcommand{\indextt}[1]{\index{#1@\texttt{#1}}}
+% Emphasis + index
+\newcommand{\emphi}[1]{\emph{#1}\index{#1}}
+
+
+% Miljø for skriving av code fragmenter
+%\newenvironment{source}{\begin{verbatim}}{\end{verbatim}}
+\newenvironment{source}
+   {\begin{list}{}{\setlength{\leftmargin}{30pt}} \ttfamily \item[]}
+   {\end{list}}   
+
+%%%% Beskrivelser av verktøy
+% Headerlinjen
+\newcommand{\thead}[2]%
+   {\vspace{4mm}\underline{{\bfseries\large #1} -- #2}%
+    \index{#1@\texttt{#1}|emph}}
+% Miljø
+\newcommand{\tdesclabel}[1]{\mbox{\textsf{#1:}}\hfil}
+\newenvironment{tdesc}
+  {\begin{list}{}%
+     {\renewcommand{\makelabel}{\tdesclabel}%
+      \setlength{\labelwidth}{13mm}%
+      \setlength{\leftmargin}{\labelsep}%
+      \addtolength{\leftmargin}{13mm}%
+     }%
+  }%
+  {\end{list}}
+% Tabbing av argumentlister
+\newenvironment{vartab}%
+   {\begin{tabbing}%
+ Temperature \= : \= Vertically integrated concentration \= [deg C] \kill}%
+   {\end{tabbing}}
+
+
+\renewcommand{\topfraction}{0.8}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.1}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     
+
+\begin{document}
+
+
+\maketitle
+
+\tableofcontents 
+
+\clearpage
+\addcontentsline{toc}{chapter}{Introduction}
+\include{intro}
+
+\include{teori}
+
+\include{numerikk}
+
+
+\include{envir}
+
+
+\include{examples}
+
+\include{manual}
+
+\appendix
+
+\include{appendix}
+
+
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{plainnat}
+%\bibliographystyle{authordate3}
+\bibliography{vertegg}
+
+\newpage
+\addcontentsline{toc}{chapter}{Index}
+\printindex
+
+\end{document}

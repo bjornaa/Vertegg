@@ -1,0 +1,607 @@
+
+\chapter{Reference Manual --- VertEgg Version 0.9}
+
+\section{Overview of the Toolbox}
+
+The VertEgg toolbox  presently contain  the following tools,
+grouped here according to functionality.
+
+\begin{itemize}
+  \item Initialise VertEgg
+    \begin{itemize}
+      \item \edb{ve\_init}
+      \item \edb{ve\_grid(Hcol, dz)}
+    \end{itemize}  
+  \item Make initial egg distribution
+    \begin{itemize}
+      \item \edb{spawn(M, Z)}
+      \item \edb{ve\_rand(M)}
+    \end{itemize}  
+  \item Compute the stationary solution
+    \begin{itemize}
+      \item \edb{eggsact(M, K, W, Z)}
+      \item \edb{srcsact(K, W, P, alpha)}
+      \item \edb{sstate(M, K, W)}
+    \end{itemize}  
+  \item Solve the transient problem numerically
+    \begin{itemize}
+      \item \edb{fluxlim(A0, K, W, nstep, dt, P, alpha)}
+      \item \edb{ftcs(A0, K, W, nstep, dt, P, alpha)}
+      \item \edb{lwendrof(A0, K, W, nstep, dt, P, alpha)}
+      \item \edb{upstream(A0, K, W, nstep, dt, P, alpha)}
+    \end{itemize} 
+  \item Compute terminal egg velocity
+    \begin{itemize}
+      \item \edb{dens0(S, T)}
+      \item \edb{eggvel(drho, d, mu)}
+      \item \edb{eggvelst(S, T, d, Se)}
+      \item \edb{molvisc(S, T)}
+    \end{itemize} 
+  \item Analyse distributions
+    \begin{itemize}
+      \item \edb{eggmom(A, p)}
+      \item \edb{ve\_drint(A, z1, z2)}
+      \item \edb{ve\_int(A)}
+      \item \edb{ve\_mean(A)}
+      \item \edb{ve\_std(A)}
+      \item \edb{ve\_rmsd(A, B)}
+    \end{itemize} 
+\end{itemize}
+
+
+\section{Description of the Tools}
+
+
+{\parindent=0pt
+
+
+\thead{dens0}{Sigma-T of sea water at zero pressure}
+
+\begin{tdesc}
+\item[Usage] \edb{sigma = dens0(S, T)}
+\item[Input]
+  \begin{vartab}
+    \edb{S}  \> : \> Salinity     \>   [psu]   \\
+    \edb{T}  \> : \> Temperature  \>   [\degC] 
+  \end{vartab}
+  \edb{S} and \edb{T} may be arrays of the same shape.
+\item[Output]
+  \begin{vartab}
+    \edb{sigma} \> : \> Sigma-T value \>  [\kgpcum] 
+  \end{vartab}
+  \edb{sigma} is an array of the same shape as \edb{S} and \edb{T}.
+\item[Description] \mbox{}\\
+  \edb{dens0} computes the $\sigma_T$ value (density - 1000)
+  of sea water at zero pressure.
+  The density is computed by the international equation
+  of state for sea water, UNESCO, 1980.
+\end{tdesc}
+
+
+\thead{eggmom}{Moment of egg distribution}
+
+\begin{tdesc}
+\item[Usage] \edb{M = eggmom(A, p)}
+\item[Input]
+  \begin{vartab}
+  \edb{A}   \> : \> Egg distribution \>  [eggs/m$^3$] \\
+  \edb{p}   \> : \> Order of moment  
+  \end{vartab}
+  \edb{A} must be a matrix where the columns live on egg-points,
+  but a row-vector at egg-points is also accepted,
+  \edb{size(A) = (Ncell x n)} or \edb{(1 x Ncell)}
+\item[Output]
+  \begin{vartab}
+  \edb{M}  \>  : \> The \edb{p}-th moment of \edb{A} \> [eggs m$^{p-2}$]
+  \end{vartab}
+  If \edb{A} is a matrix of size \edb{(Ncell x n)}, \edb{M} becomes a 
+  row-vector of length n containing the moments of
+  the columns of \edb{A}. \edb{p} must not be negative.
+\item[Description]\mbox{}\\
+  Computes the \edb{p}-th moment of the egg-distribution \edb{A},
+  \begin{displaymath}
+      M = \int^0_{-H} z^p a(z) dz
+  \end{displaymath}
+   where $a(z)$ is the piecewise constant function 
+   $a(z) = \edb{A(i)}$ for $\edb{ZF(i+1)} < z < \edb{ZF(i)}$.
+   If \edb{A} is a matrix, the moments of the columns are
+   calculated.
+\end{tdesc}
+
+
+\thead{eggsact}{Exact stationary solution, const. coeff.}
+
+\begin{tdesc}
+\item[Usage] \edb{A = eggsact(M, K, W, Z)}
+\item[Input]
+  \begin{vartab}
+  \edb{M}   \> : \> Vertical integrated concentration \>  [eggs/m$^2$] \\
+  \edb{K}   \> : \> Eddy diffusivity     \> [\sqmps] \\
+  \edb{W}   \> : \> Terminal velocity   \>  [\mps] \\
+  \edb{Z} (opt) \> : \> Vertical coordinate  \> [\m] 
+  \end{vartab}
+  \edb{M}, \edb{K}, \edb{W} are scalars. \edb{Z} can be arbitrary array.
+  IF \edb{Z} is omitted, \edb{ZE} is used as vertical coordinates.
+\item[Output]
+  \begin{vartab}
+  \edb{A}     \>  : \> Concentration at depth \edb{Z} \> [eggs/m$^3$]
+  \end{vartab}
+  If \edb{Z} is present, \edb{size(A) = size(Z)},
+  otherwise, \edb{size(A) = size(ZE)}.
+\item[Description]
+   Computes the exact stationary solution of the
+   convection diffusion equation with constant
+   eddy diffusivity \edb{K} and velocity \edb{W}.
+   If \edb{Z} is present, returns array of pointwise values.
+   If \edb{Z} is not present, returns exact cell averages.
+\end{tdesc}
+
+\thead{eggvel}{Terminal egg velocity}
+
+\begin{tdesc}
+\item[Usage] \edb{[W, Re] = eggvel(drho, d, mu)}
+\item[Input]
+   \begin{vartab}
+   \edb{drho}  \> : \> Buoyancy of egg  \> [\kgpcum] \\
+   \edb{d}     \> : \> Diameter of egg  \> [\m] \\
+   \edb{mu} (opt) \> : 
+         \> Dynamic molecular viscosity \>   [kgm$^{-1}$s$^{-1}$] 
+   \end{vartab}
+   \edb{drho}, \edb{d} and \edb{mu} can be matrices (of the same shape).
+   \edb{mu} can be also be a scalar or omitted.
+   The sign of \edb{drho} is positive if the egg is ascending,
+   \edb{drho} = Density of water - density of egg. With only two arguments,
+   a default value 0.0016 is used for \edb{mu}. 
+\item[Output]
+  \begin{vartab}
+  \edb{W}   \> : \> Terminal velocity  \> [\mps] \\
+  \edb{Re} (opt) \> : \> Reynolds number
+  \end{vartab}
+\item[Description]
+  Computes the terminal velocity of a small sphere in sea water
+  by the formulas in Stokes' or Dallavalles formula.
+\end{tdesc}
+
+
+\thead{eggvelst}{Egg velocity from salinity and temperature}
+
+\begin{tdesc}
+\item[Usage] \edb{[W, Re] = eggvelst(S, T, d, Se)}
+\item[Input]
+  \begin{vartab}
+  \edb{S}  \>  : \> Salinity of the environment \> [psu]   \\
+  \edb{T}  \>  : \> Temperature                 \> [\degC] \\
+  \edb{d}  \>  : \> Egg diameter                \> [m]     \\
+  \edb{Se} \>  : \> Egg salinity                \> [psu]
+  \end{vartab}
+  All arguments can be arrays of the same shape.
+  Alternatively \edb{d} and/or \edb{Se} may be scalars.
+\item[Output]
+  \begin{vartab}
+  \edb{W}    \> : \> Terminal velocity  \> [\mps] \\
+  \edb{Re} (opt) \> : \> Reynolds number
+  \end{vartab}
+\item[Description]\mbox{}\\
+  Computes the terminal egg velocity given the hydrography
+  of the environment and the salinity \edb{Se} where the egg is
+  neutral buoyant.
+\end{tdesc}
+
+\thead{fluxlim}{Numerical integration of transport equation}
+
+\begin{tdesc}
+\item[Usage] \edb{A = fluxlim(A0, K, W, nstep, dt, P, alpha)}
+\item[Input]
+  \begin{vartab}
+  \edb{A0}  \> : \> Start concentration \>  [eggs/m$^3$] \\
+  \edb{K}   \> : \> Eddy diffusivity    \>  [\sqmps]  \\
+  \edb{W}   \> : \> Terminal velocity   \>  [\mps]  \\
+  \edb{nstep}  \> : \> Number of integration steps \\
+  \edb{dt}     \> : \> Time step           \>  [s] \\
+  \edb{P}     (opt) \> : \> Spawning term       \>  [eggs/m$^3$/s] \\
+  \edb{alpha} (opt) \> : \> Loss coefficient \> [1/s] 
+  \end{vartab}
+  \edb{A0} lives at the egg-points, \edb{size(A0) = (Ncell x 1)}.
+  \edb{K} and \edb{W} live at the flux-points, \edb{size = (Ncell+1 x1)}.
+  If \edb{P} and \edb{alpha} are present, they also live at the egg-points.
+  If \edb{P} and \edb{alpha} are missing, the source term is ignored. 
+\item[Output]
+  \begin{vartab}
+  \edb{A} \>  : \> Result concentration \> [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} lives at egg-points in the same way as \edb{A0}
+\item[Description]\mbox{}\\
+  Integrates the convection-diffusion equation by the 
+  flux-limited method. Starting with the concentration 
+  in \edb{A0} nstep integration steps  are performed. 
+  The result is saved in \edb{A}.
+\end{tdesc}
+
+
+\thead{ftcs}{Numerical integration of transport equation}
+
+\begin{tdesc}
+\item[Usage] \edb{A = ftcs(A0, K, W, nstep, dt, P, alpha)}
+\item[Input]
+  \begin{vartab}
+  \edb{A0}  \> : \> Start concentration \>  [eggs/m$^3$] \\
+  \edb{K}   \> : \> Eddy diffusivity    \>  [\sqmps]  \\
+  \edb{W}   \> : \> Terminal velocity   \>  [\mps]  \\
+  \edb{nstep}  \> : \> Number of integration steps \\
+  \edb{dt}     \> : \> Time step           \>  [s] \\
+  \edb{P}     (opt) \> : \> Spawning term       \>  [eggs/m$^3$/s] \\
+  \edb{alpha} (opt) \> : \> Loss coefficient \> [1/s] 
+  \end{vartab}
+  \edb{A0} lives at the egg-points, \edb{size(A0) = (Ncell x 1)}.
+  \edb{K} and \edb{W} live at the flux-points, \edb{size = (Ncell+1 x1)}.
+  If \edb{P} and \edb{alpha} are present, they also live at the egg-points.
+  If \edb{P} and \edb{alpha} are missing, the source term is ignored. 
+\item[Output]
+  \begin{vartab}
+  \edb{A} \>  : \> Result concentration \> [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} lives at egg-points in the same way as \edb{A0}
+\item[Description]\mbox{}\\
+  Integrates the convection-diffusion equation by the 
+  forward time central space (FTCS)  method. Starting 
+  with the concentration in \edb{A0} nstep integration steps 
+  are performed. The result is saved in \edb{A}.
+\end{tdesc}
+
+
+
+
+\thead{lwendrof}{Numerical integration of transport equation}
+
+\begin{tdesc}
+\item[Usage] \edb{A = lwendrof(A0, K, W, nstep, dt, P, alpha)}
+\item[Input]
+  \begin{vartab}
+  \edb{A0}  \> : \> Start concentration \>  [eggs/m$^3$] \\
+  \edb{K}   \> : \> Eddy diffusivity    \>  [\sqmps]  \\
+  \edb{W}   \> : \> Terminal velocity   \>  [\mps]  \\
+  \edb{nstep}  \> : \> Number of integration steps \\
+  \edb{dt}     \> : \> Time step           \>  [s] \\
+  \edb{P}     (opt) \> : \> Spawning term       \>  [eggs/m$^3$/s] \\
+  \edb{alpha} (opt) \> : \> Loss coefficient \> [1/s] 
+  \end{vartab}
+  \edb{A0} lives at the egg-points, \edb{size(A0) = (Ncell x 1)}.
+  \edb{K} and \edb{W} live at the flux-points, \edb{size = (Ncell+1 x1)}.
+  If \edb{P} and \edb{alpha} are present, they also live at the egg-points.
+  If \edb{P} and \edb{alpha} are missing, the source term is ignored. 
+\item[Output]
+  \begin{vartab}
+  \edb{A} \>  : \> Result concentration \> [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} lives at egg-points in the same way as \edb{A0}
+\item[Description]\mbox{}\\
+  Integrates the convection-diffusion equation by the 
+  Lax-Wendroff method. Starting with the concentration
+  in \edb{A0} nstep integration steps are performed. The 
+  result is saved in \edb{A}.
+\end{tdesc}
+
+\thead{molvisc}{Dynamical molecular viscosity of sea water}
+
+\begin{tdesc}
+\item[Usage] \edb{mu = molvisc(S, T)}
+\item[Input]
+  \begin{vartab}
+    \edb{S}     \> : \> Salinity     \>   [psu]   \\
+    \edb{T}     \> : \> Temperature  \>   [\degC] 
+  \end{vartab}
+  \edb{S} and \edb{T} may be arrays of the same shape.
+\item[Output]
+  \begin{vartab}
+    \edb{mu} \> : \> Dynamic molecular viscosity \>  [kgm$^{-1}$s$^{-1}$] 
+  \end{vartab}
+  \edb{mu} is an array of the same shape as \edb{S} and \edb{T}.
+\item[Description] \mbox{}\\
+  Computes the dynamic molecular viscosity by formula~\eqref{eq:molvisc}.
+\end{tdesc}
+
+
+\thead{spawn}{Make concentrated egg distribution}
+
+\begin{tdesc}
+\item[Usage] \edb{A = spawn(M, Z)}
+\item[Input]
+  \begin{vartab}
+  \edb{M} \> : \> Vertical integrated concentration \>  [eggs/m$^2$] \\
+  \edb{Z} \> : \> Spawning depth              \>       [m]
+  \end{vartab}
+  \edb{M} and \edb{Z} are scalars.
+\item[Output]
+  \begin{vartab}
+  \edb{A}  \> : \> Egg distribution     \>        [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} is a column vector, living at the egg points.
+\item[Description]\mbox{}\\
+  Returns a vertical egg distribution \edb{A} with vertical
+  integral \edb{M}, concentrated as much as possible around 
+  depth = \edb{Z}.
+  If $\edb{ZE(Ncell)} < \edb{Z} < \edb{ZE(1)}$, then \edb{Z = ve\_mean(A)}.
+\end{tdesc}
+
+
+\thead{srcsact}{Stationary solution, const. coeff., source term}
+
+\begin{tdesc}
+\item[Usage] \edb{A = srcsact(K, W, P, alpha, Z)}
+\item[Input]
+  \begin{vartab}
+    \edb{K} \> : \> Eddy diffusivity  \>  [\sqmps] \\
+    \edb{W} \> : \> Terminal velocity \>  [\mps] \\
+    \edb{P} \> : \> Egg production    \>  [eggs/m$^3$/s] \\
+    \edb{alpha} \> : \> Egg loss rate  \>       [1/s] \\
+    \edb{Z} (opt) \> : \> Vertical coordinate \>  [m]
+  \end{vartab}
+  \edb{K}, \edb{W}, \edb{P} and \edb{alpha} are scalars. \edb{Z} can 
+  be an arbitrary array.
+  If \edb{Z} is ommitted, \edb{ZE} is used as vertical coordinate.
+\item[Output]
+  \begin{vartab}
+    \edb{A} \> : \>  Concentration at depth \edb{Z}.  \>   [eggs/m$^3$]
+  \end{vartab}
+  If \edb{Z} is present, \edb{size(Y) = size(Z)},
+  otherwise, \edb{size(Y) = size(ZE)}.
+\item[Description]\mbox{}\\
+   Computes the exact stationary solution of the
+   convection diffusion equation with constant
+   eddy diffusivity \edb{K}, velocity \edb{W}, egg production \edb{P}
+   and loss rate \edb{alpha}.
+   If \edb{Z} is present, returns array of pointwise values.
+   If \edb{Z} is not present, returns exact cell averages.
+\end{tdesc}
+
+
+\thead{sstate}{Steady state solution}
+
+\begin{tdesc}
+\item[Usage] \edb{A = sstate(M, K, W)}
+\item[Input]
+  \begin{vartab}
+  \edb{M} \>  : \> Vertical integrated concentration \> [eggs/m$^2$] \\
+  \edb{K} \>  : \> Eddy diffusivity \> [\sqmps] \\
+  \edb{W} \>  : \> Egg velocity   \>  [\mps]
+  \end{vartab}
+  \edb{M} is scalar, \edb{K} and \edb{W} are column vectors of
+  length \edb{Ncell+1}, \edb{K} and \edb{W} live at the flux-points.
+\item[Output]
+  \begin{vartab}
+  \edb{A}    \>  : \> Stationary solution \> [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} lives at the egg points, \edb{size = (Ncell x 1)}.
+\item[Description]\mbox{}\\
+  Computes the steady state solution of the convection-
+  diffusion equation without source term, with eddy diffusivity 
+  \edb{K} and egg
+  velocity \edb{W} variable in the water column. 
+  The solution is computed by viewing \edb{K} and \edb{W}
+  as piecewise constant on the grid cells.
+\end{tdesc}
+
+
+\thead{upstream}{Numerical integration of transport equation}
+
+\begin{tdesc}
+\item[Usage] \edb{A = upstream(A0, K, W, nstep, dt, P, alpha)}
+\item[Input]
+  \begin{vartab}
+  \edb{A0}  \> : \> Start concentration \>  [eggs/m$^3$] \\
+  \edb{K}   \> : \> Eddy diffusivity    \>  [\sqmps]  \\
+  \edb{W}   \> : \> Terminal velocity   \>  [\mps]  \\
+  \edb{nstep}  \> : \> Number of integration steps \\
+  \edb{dt}     \> : \> Time step           \>  [s] \\
+  \edb{P}     (opt) \> : \> Spawning term       \>  [eggs/m$^3$/s] \\
+  \edb{alpha} (opt) \> : \> Loss coefficient \> [1/s] 
+  \end{vartab}
+  \edb{A0} lives at the egg-points, \edb{size(A0) = (Ncell x 1)}.
+  \edb{K} and \edb{W} live at the flux-points, \edb{size = (Ncell+1 x1)}.
+  If \edb{P} and \edb{alpha} are present, they also live at the egg-points.
+  If \edb{P} and \edb{alpha} are missing, the source term is ignored. 
+\item[Output]
+  \begin{vartab}
+  \edb{A} \>  : \> Result concentration \> [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} lives at egg-points in the same way as \edb{A0}
+\item[Description]\mbox{}\\
+  Integrates the convection-diffusion equation by the 
+  upstream method. Starting with the concentration \edb{A0},
+  nstep integration steps are performed. The result is 
+  saved in \edb{A}.
+\end{tdesc}
+
+\thead{ve\_drint}{Integrate over a depth range}
+
+\begin{tdesc}
+\item[Usage]  \edb{int = ve\_drint(A, z1, z2)}
+\item[Input]
+   \begin{vartab}    
+   \edb{A}  \> : \>  Egg distribution \> [eggs/m$^3$] \\
+   \edb{z1} \> : \>  First integration limit \>  [\m] \\
+   \edb{z2} \> : \> Second integration limit \> [\m]
+   \end{vartab}
+   \edb{A} must be a matrix where the columns are
+   egg distributions. But a row-vector can also 
+   be accepted, \edb{size(A) = (Ncell x n)} or \edb{(1 x Ncell)}.
+\item[Output]
+   \begin{vartab}
+   \edb{int} \> : \> Integral of A over depth range \> [eggs/m$^2$]
+   \end{vartab}
+   If \edb{A} is a matrix of size \edb{(Ncell x m)}, \edb{int} becomes
+   a row-vector of length \edb{m} containing the integrals
+   of the columns of A.
+\item[Description]\mbox{}\\
+    Computes the vertical integral
+    \begin{displaymath}
+      \edb{int} = \int_\edb{z1}^\edb{z2} a(z) dz
+    \end{displaymath}
+    where $a(z)$ is the piecewice constant function 
+    $a(z) = \edb{A(i)}$ for $\edb{ZF(i+1)} < z < \edb{ZF(i)}$.
+    If \edb{A} is a matrix, the integral is computed for each column
+\end{tdesc}
+
+\thead{ve\_grid}{Set up vertical grid}
+
+\begin{tdesc}
+\item[Usage]  \edb{ve\_grid(H, dz0)}
+\item[Input]
+  \begin{vartab} 
+  \edb{H}        \>  : \> Depth of water column  \> [m] \\
+  \edb{dz0}      \>  : \> Grid size              \> [m]
+  \end{vartab}
+\item[Output]
+  None
+\item[Description]\mbox{}\\
+  Sets up the vertical grid used in VertEgg, given the depth
+  \edb{H} of the water column and the grid size \edb{dz0}.
+  (Re)defines all global variables.
+  The global variables are declared by \edb{ve\_init}.
+\end{tdesc}
+
+
+\thead{ve\_init}{Initialize VertEgg}
+
+\begin{tdesc}
+\item[Usage] \edb{ve\_init}
+\item[Input] none
+\item[Output] none
+\item[Description]\mbox{}\\
+  Script for initializing VertEgg.
+  Declares the global variables, so they become
+  available in the workspace.
+  The actual values are set by \edb{ve\_grid}.
+\end{tdesc}
+
+\thead{ve\_int}{Vertical integral of egg distribution}
+
+\begin{tdesc}
+\item[Usage] \edb{M = ve\_int(A)}
+\item[Input]
+  \begin{vartab}
+  \edb{A} \>  : \> Egg distribution  \>  [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} must be a matrix where the columns live on egg-points,
+  but a row-vector at egg-points is also accepted,
+  \edb{size(A) = (Ncell x n)} or \edb{(1 x Ncell)}
+\item[Output]
+  \begin{vartab}
+  \edb{M}    \>  : \> The vertical integral \>  [eggs/m$^2$]
+  \end{vartab}
+  If \edb{A} is a matrix of size \edb{(Ncell x n)}, \edb{M} is a
+  row-vector of length \edb{n}.
+\item[Description]\mbox{}\\
+  Computes the vertical integral of an egg distribution.
+  \edb{ve\_int} is a vector function.
+\end{tdesc}
+
+
+\thead{ve\_mean}{Mean depth of an egg distribution}
+
+\begin{tdesc}
+\item[Usage] \edb{mu = ve\_mean(A)}
+\item[Input]
+  \begin{vartab}
+  \edb{A}  \> :\>  Egg distribution   \>  [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} must be a matrix where the columns live on egg-points,
+  but a row-vector at egg-points is also accepted,
+  \edb{size(A) = (Ncell x n)} or \edb{(1 x Ncell)}
+\item[Output]
+  \begin{vartab}
+  \edb{mu}   \> : \> The center of gravity \>  [m] 
+  \end{vartab}
+  If \edb{A} is a matrix of size \edb{(Ncell x n)}, \edb{mu} is a
+  row-vector of length \edb{n}.
+\item[Description]\mbox{}\\
+  Computes the mean (or center of gravity) of the egg
+  egg distribution \edb{A},
+  \edb{ve\_mean} is a vector function.
+\end{tdesc}
+
+
+\thead{ve\_rand}{Make random egg distribution}
+
+\begin{tdesc}
+\item[Usage] \edb{Y = ve\_rand(M)}
+\item[Input]
+  \begin{vartab}
+  \edb{M}    \>  : \> Vertical integrated concentration \> [eggs/m$^2$]
+  \end{vartab}
+  \edb{M} is a scalar
+\item[Output]
+  \begin{vartab}
+  \edb{Y}    \>  : \>  Random egg distribution \> [eggs/m$^3$]
+  \end{vartab}
+  \edb{Y} is vector of size \edb{[Ncell 1]}
+ 
+\item[Description]\mbox{}\\
+  A uniform distribution is used to generate random 
+  values between 0 and 1. The values are scaled
+  to make \edb{ve\_int(Y) = M}.
+\end{tdesc}
+
+
+\thead{ve\_rmsd}{Root mean square deviation}
+
+\begin{tdesc}
+\item[Usage] \edb{R = ve\_rmsd(X, Y)}
+\item[Input]
+  \begin{vartab}
+  \edb{X} \> : \> Egg concentration  \>  [eggs/m$^3$] \\
+  \edb{Y} \> : \> Egg concentration  \>  [eggs/m$^3$]
+  \end{vartab}
+  \edb{X} and \edb{Y} may be matrixes of the same size
+  with \edb{Ncell} rows. \edb{X} and/or \edb{Y} may also be
+  vectors of length \edb{Ncell}.
+\item[Output]
+  \begin{vartab}
+  \edb{R} \>  : \> Root mean square deviation \> [eggs/m$^3$]
+  \end{vartab}
+  \edb{R} is a row vector with length =
+  \edb{max(columns(X), columns(Y))}.
+\item[Description]\mbox{}\\
+  Computes the root mean square deviation \edb{R}
+  between the columns of \edb{X} and \edb{Y}. If one
+  argument is a vector, it is compared to
+  all columns of the other argument.
+  If \edb{X} and \edb{Y} are matrices
+  \begin{displaymath}
+    \edb{R(j)} =
+    \sqrt{\frac{1}{\edb{Ncell}} \sum_\edb{i} (\edb{X(i,j)}-\edb{Y(i,j)})^2} .
+  \end{displaymath}
+  If \edb{Y} is a vector
+  \begin{displaymath}
+    \edb{R(j)} = 
+    \sqrt{\frac{1}{\edb{Ncell}} \sum_\edb{i} (\edb{X(i,j)}-\edb{Y(i)})^2} .
+  \end{displaymath}
+\end{tdesc}
+
+
+\thead{ve\_std}{Standard deviation of egg distribution}
+
+\begin{tdesc}
+\item[Usage] \edb{s = ve\_std(A)}
+\item[Input]
+  \begin{vartab}
+  \edb{A}    \> : \> Egg distribution  \>  [eggs/m$^3$]
+  \end{vartab}
+  \edb{A} must be a matrix where the columns live on egg-points,
+  but a row-vector at egg-points is also accepted,
+  size(A) = (Ncell x n) or (1 x Ncell)
+\item[Output]
+  \begin{vartab}
+  \edb{s}   \>  : \> The standard deviation  \> [m]
+  \end{vartab}
+  If \edb{A} is a matrix of size (Ncell x n), s is a
+  row-vector of length n.
+\item[Description]\mbox{}\\
+  Computes the standard deviation of an egg 
+  distribution \edb{A},
+  \edb{ve\_std} is a vector function.
+\end{tdesc}
+
+
+} % \parindent=0pt
+
