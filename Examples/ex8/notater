@@ -1,0 +1,95 @@
+Behold oppsett med dødelighet,
+
+Beregn med alle metoder
+upstream, lwendrof, posmet og minlim
+(lag felles plott)
+(gidder ikke dette, lag metodene klar som kommentarer,
+bruk minlim)
+
+
+
+Beregn stasjonære fordeling, sammenlign (går ikke)
+
+Ta  deretter og følg alle gytt en dag
+
+---------------------------------------------------
+
+Tekst:
+
+Example 8 .....
+
+This example illustrate the use of the production/loss terms.
+The main script runex8 uses the same input data as the
+previous two examples. Also the same spatial resolution is used.
+
+An arbitrary continuous spawning rate of 1 egg/m^3/day is used
+for the lower 100 m. The background egg mortality is set to m1 = 10%/day.
+Near the neutral level, the mortality is increased to m2 = 50%/day
+to account for hatching. These percentages are set more or less
+arbitrarly for the sake of this example.
+
+The model may be run in two modes. In mode 1 (the default), the total
+egg distribution is considered converging to a steady state. In mode
+2, the egg production is terminated after 24 hours, making it possible
+to modell the vertical distribution of eggs from one day as they
+become older.
+
+The model setup present some numerical problems. As expected, the
+upstream method gives too low maximum concentration. Although stable,
+the Lax Wendroff method produces negative concentrations.  The posmet
+method performs better, but small oscillations are produced.  As a
+result of these problems the minlim method was added to the toolbox
+and is the default method in runex8. The other methods may easily be
+tested by modification of the script.
+
+By default runex8 runs the model in mode 1 for 30 days, starting
+with no eggs. Figure ... shows the distribution after at 20 days,
+close to the steady state. From near zero at near 600 m the
+concentration increases lineraly to a local maximum close to 500 m.
+Because of the egg mortality the concentration decreases slowly to
+a local minimum above 300 m. Thereafter the egg concentration raises
+to a peek at the neutral level of 125--130 m before decreasing steeply
+to zero.
+
+***Plott
+
+Figur ... Modelled egg distribution after 20 days, 
+
+Issuing the command
+    mode = 2 
+sets the model runex8 in mode 2. This makes it possible
+to follow the development of the egg distribution from one day.
+Figrue ... shows the distributions of eggs at different
+ages. Equivalently it can be viewed as the position of eggs spawned
+during one day after 24, hours. (--- skriv bedre ---) As the eggs grow
+older, the concentration ascends, decreases by mortality and get
+smoother. At the neutral level they make a narrow peak concentration
+before the concentration decreases rapidly by hatching.
+
+
+
+***Plott
+
+
+Figur ... Modelled distribution of eggs at different age
+0--1 days, 3--4 days, 6--7 days, 
+
+The number of eggs at age is calculated and plotted by the command
+sequence
+
+  Y = ve_int(X);
+  plot(Y)
+
+An elaboration of this sequence produces figure ...
+The first 5 days the number of eggs are reduced by the mortality
+rate m1. After a short transition period the loss stabilizes
+at the higher rate m2 after 6 days.
+
+
+
+Figur ... Vertical integrated number of eggs as function of age
+
+
+The script animex8 can be used to animate the results of the
+simulations from runex8 in both modes.
+

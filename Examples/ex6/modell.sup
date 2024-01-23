@@ -1,0 +1,18 @@
+Profile-file   testprof.dat
+Initial-file   halibut.dat
+Output-file    result.dat
+
+Depth    600
+dz         5
+dt       600
+outstep   12
+simtime  240
+
+Vertical_mixing_at_surface   0.0120
+
+Number_of_groups 5
+3.2  34.3
+3.2  34.4
+3.2  34.5
+3.2  34.6
+3.2  34.7
